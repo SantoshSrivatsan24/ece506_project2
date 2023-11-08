@@ -7,42 +7,34 @@
 #include "cache.h"
 using namespace std;
 
-Cache::Cache(int s,int a,int b )
+Cache::Cache(int size,int assoc, int block_size)
+: size_ ((ulong) size)
+, assoc_ ((ulong) assoc)
+, block_size_ ((ulong) block_size)
+, tag_mask_(0)
+, num_reads_(0)
+, num_read_misses_(0)
+, num_writes_(0)
+, num_write_misses_(0)
+, num_write_backs_(0)
 {
-   ulong i, j;
-   reads = readMisses = writes = 0; 
-   writeMisses = writeBacks = currentCycle = 0;
 
-   size       = (ulong)(s);
-   lineSize   = (ulong)(b);
-   assoc      = (ulong)(a);   
-   sets       = (ulong)((s/b)/a);
-   numLines   = (ulong)(s/b);
-   log2Sets   = (ulong)(log2(sets));   
-   log2Blk    = (ulong)(log2(b));   
-  
-   //*******************//
-   //initialize your counters here//
-   //*******************//
+   num_sets_               = size_ / (block_size_ * assoc_);
+   num_blocks_             = size_ / block_size_;
+   num_index_bits_         = log2(num_sets_);
+   num_block_offset_bits_  = log2(block_size_);
+   tag_mask_               = (1 << num_index_bits_) - 1;
  
-   tagMask =0;
-   for(i=0;i<log2Sets;i++)
-   {
-      tagMask <<= 1;
-      tagMask |= 1;
-   }
    
-   /**create a two dimentional cache, sized as cache[sets][assoc]**/ 
-   cache = new cacheLine*[sets];
-   for(i=0; i<sets; i++)
-   {
+   /* Create a two dimentional cache, sized as cache[sets][assoc] */ 
+   cache = new cacheLine*[num_sets_];
+   for(ulong i = 0; i < num_sets_; i++) {
+
       cache[i] = new cacheLine[assoc];
-      for(j=0; j<assoc; j++) 
-      {
+      for(ulong j = 0; j < assoc_; j++) {
          cache[i][j].invalidate();
       }
    }      
-   
 }
 
 /**you might add other parameters to Access()
@@ -53,119 +45,113 @@ void Cache::Access(ulong addr,uchar op)
    currentCycle++;/*per cache global counter to maintain LRU order 
                     among cache ways, updated on every cache access*/
          
-   if(op == 'w') writes++;
-   else          reads++;
+   if(op == 'w') num_writes_++;
+   else          num_reads_++;
    
    cacheLine * line = findLine(addr);
-   if(line == NULL)/*miss*/
-   {
-      if(op == 'w') writeMisses++;
-      else readMisses++;
+   /* Miss */
+   if(line == NULL) {
+      if(op == 'w') num_write_misses_++;
+      else num_read_misses_++;
 
       cacheLine *newline = fillLine(addr);
-      if(op == 'w') newline->setFlags(DIRTY);    
+      if(op == 'w') newline->set_state(MODIFIED);    
       
    }
-   else
-   {
-      /**since it's a hit, update LRU and update dirty flag**/
-      updateLRU(line);
-      if(op == 'w') line->setFlags(DIRTY);
+   else {
+      /* Hit. Update LRU and dirty flags */
+      update_LRU(line);
+      if(op == 'w') line->set_state(MODIFIED);
    }
 }
 
 /*look up line*/
-cacheLine * Cache::findLine(ulong addr)
-{
-   ulong i, j, tag, pos;
-   
-   pos = assoc;
-   tag = calcTag(addr);
-   i   = calcIndex(addr);
+cacheLine * Cache::findLine(ulong addr) {
+
+   ulong pos = assoc_;
+   ulong tag = calc_tag(addr);
+   ulong i   = calc_index(addr);
   
-   for(j=0; j<assoc; j++)
-   if(cache[i][j].isValid()) {
-      if(cache[i][j].getTag() == tag)
-      {
+   for(ulong j = 0; j < assoc_; j++){
+      cacheLine &block = cache[i][j];
+      if(block.is_valid() && block.get_tag() == tag) {
          pos = j; 
-         break; 
+         return &cache[i][j];
       }
    }
-   if(pos == assoc) {
-      return NULL;
-   }
-   else {
-      return &(cache[i][pos]); 
-   }
+   return NULL;
 }
 
-/*upgrade LRU line to be MRU line*/
-void Cache::updateLRU(cacheLine *line)
-{
-   line->setSeq(currentCycle);  
+/* Upgrade LRU line to be MRU line */
+void Cache::update_LRU(cacheLine *line) {
+   line->set_seq(currentCycle);  
 }
 
 /*return an invalid line as LRU, if any, otherwise return LRU line*/
-cacheLine * Cache::getLRU(ulong addr)
-{
-   ulong i, j, victim, min;
+cacheLine * Cache::getLRU(ulong addr) {
 
-   victim = assoc;
-   min    = currentCycle;
-   i      = calcIndex(addr);
+   ulong victim = assoc_;
+   ulong min    = currentCycle;
+   ulong i      = calc_index(addr);
    
-   for(j=0;j<assoc;j++)
-   {
-      if(cache[i][j].isValid() == 0) { 
+   for(ulong j = 0; j < assoc_; j++) {
+      if(cache[i][j].is_valid() == 0) { 
          return &(cache[i][j]); 
       }   
    }
 
-   for(j=0;j<assoc;j++)
-   {
-      if(cache[i][j].getSeq() <= min) { 
+   for(ulong j = 0; j < assoc_; j++) {
+      if(cache[i][j].get_seq() <= min) { 
          victim = j; 
-         min = cache[i][j].getSeq();}
+         min = cache[i][j].get_seq();}
    } 
 
-   assert(victim != assoc);
+   assert(victim != assoc_);
    
    return &(cache[i][victim]);
 }
 
-/*find a victim, move it to MRU position*/
-cacheLine *Cache::findLineToReplace(ulong addr)
-{
+/* Find a victim, move it to MRU position */
+cacheLine *Cache::findLineToReplace(ulong addr) {
    cacheLine * victim = getLRU(addr);
-   updateLRU(victim);
+   update_LRU(victim);
   
    return (victim);
 }
 
-/*allocate a new line*/
-cacheLine *Cache::fillLine(ulong addr)
-{ 
+/* Allocate a new line */
+cacheLine *Cache::fillLine(ulong addr) { 
    ulong tag;
   
    cacheLine *victim = findLineToReplace(addr);
    assert(victim != 0);
    
-   if(victim->getFlags() == DIRTY) {
-      writeBack(addr);
+   if(victim->get_state() == MODIFIED) {
+      write_back(addr);
    }
       
-   tag = calcTag(addr);   
-   victim->setTag(tag);
-   victim->setFlags(VALID);    
+   tag = calc_tag(addr);   
+   victim->set_tag(tag);
+   victim->set_state(CLEAN);    
    /**note that this cache line has been already 
       upgraded to MRU in the previous function (findLineToReplace)**/
 
    return victim;
 }
 
-void Cache::printStats()
+void Cache::print_stats()
 { 
    printf("===== Simulation results      =====\n");
    /****print out the rest of statistics here.****/
    /****follow the ouput file format**************/
+   printf("01. number of reads: %lu\n", num_reads_);
+   printf("02. number of read misses: %lu\n", num_read_misses_);
+   printf("03. number of writes: %lu\n", num_writes_);
+   printf("04. number of write misses: %lu\n", num_write_misses_);
+   printf("05. total miss rate: \n");
+   printf("06. number of writebacks: %lu\n", num_write_backs_);
+   printf("07. number of memory transactions: \n");
+   printf("08. number of invalidations: \n");
+   printf("09. number of flushes: \n");
+   printf("10. number of BusRdX: \n");
 }
