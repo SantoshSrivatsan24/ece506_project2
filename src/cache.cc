@@ -8,7 +8,9 @@
 using namespace std;
 
 Cache::Cache(int size,int assoc, int block_size)
-: size_ ((ulong) size)
+: Port<bus_transaction_e>  ()
+, Imp<bus_transaction_e> ()
+, size_ ((ulong) size)
 , assoc_ ((ulong) assoc)
 , block_size_ ((ulong) block_size)
 , tag_mask_(0)
@@ -18,7 +20,6 @@ Cache::Cache(int size,int assoc, int block_size)
 , num_write_misses_(0)
 , num_write_backs_(0)
 {
-
    num_sets_               = size_ / (block_size_ * assoc_);
    num_blocks_             = size_ / block_size_;
    num_index_bits_         = log2(num_sets_);
@@ -63,6 +64,12 @@ void Cache::Access(ulong addr,uchar op)
       update_LRU(line);
       if(op == 'w') line->set_state(MODIFIED);
    }
+
+   /**
+    * Post a transaction onto the bus just to see if what I've done works
+   */
+   bus_transaction_e transaction = BusRd;
+   Port<bus_transaction_e>::post(transaction);
 }
 
 /*look up line*/
@@ -137,6 +144,10 @@ cacheLine *Cache::fillLine(ulong addr) {
       upgraded to MRU in the previous function (findLineToReplace)**/
 
    return victim;
+}
+
+void Cache::snoop(bus_transaction_e transaction) {
+   printf ("Snooping bus transaction\n");
 }
 
 void Cache::print_stats()

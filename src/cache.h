@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <iostream>
+#include "port.h"
 
 typedef unsigned long ulong;
 typedef unsigned char uchar;
@@ -16,6 +17,18 @@ enum state_e : uint8_t {
    INVALID = 0,
    CLEAN = 1,
    MODIFIED = 2,
+};
+
+enum bus_transaction_e : uint8_t {
+   BusRd,
+   BusRdX,
+   BusUpgr
+};
+
+struct bus_transaction_t {
+   ulong processor_id;  /* ID of the requesting core */
+   ulong addr;
+   bus_transaction_e bus_transaction;
 };
 
 class cacheLine 
@@ -37,8 +50,11 @@ public:
    bool is_valid()               { return (state != INVALID); }
 };
 
-class Cache
-{
+/**
+ * The Cache extends Port in order to send a transaction to the bus
+ * The Cache extends Imp in order to receive a transaction from the bus
+*/
+class Cache : public Port<bus_transaction_e>, public Imp<bus_transaction_e> {
 protected:
    ulong size_, block_size_, assoc_, num_sets_, num_index_bits_, num_block_offset_bits_, tag_mask_, num_blocks_;
    ulong num_reads_, num_read_misses_, num_writes_, num_write_misses_, num_write_backs_;
@@ -73,6 +89,8 @@ public:
    void Access(ulong,uchar);
    void print_stats();
    void update_LRU(cacheLine *);
+
+   virtual void snoop(bus_transaction_e);
 
    //******//
    //add other functions to handle bus transactions///

@@ -8,6 +8,7 @@
 using namespace std;
 
 #include "cache.h"
+#include "bus.h"
 
 int main(int argc, char *argv[])
 {
@@ -31,12 +32,15 @@ int main(int argc, char *argv[])
 
     printf("===== Simulator configuration =====\n");
     // print out simulator configuration here
+
+    Bus bus;
     
     // Using pointers so that we can use inheritance */
-    Cache** cacheArray = (Cache **) malloc(num_processors * sizeof(Cache));
+    Cache **cacheArray = (Cache **) malloc(num_processors * sizeof(Cache));
     for(ulong i = 0; i < num_processors; i++) {
         if(protocol == 0) {
             cacheArray[i] = new Cache(cache_size, cache_assoc, blk_size);
+            cacheArray[i]->connect(&bus);
         }
     }
 
@@ -54,11 +58,12 @@ int main(int argc, char *argv[])
     int line = 1;
     while(fscanf(pFile, "%lu %c %lx", &proc, &op, &addr) != EOF)
     {
-#ifdef _DEBUG
+#ifdef DEBUG
         printf("%d\n", line);
 #endif
         // propagate request down through memory hierarchy
         // by calling cachesArray[processor#]->Access(...)
+        cacheArray[proc]->Access(addr, op);
 
         line++;
     }
@@ -68,5 +73,9 @@ int main(int argc, char *argv[])
     //********************************//
     //print out all caches' statistics //
     //********************************//
+
+    for (int i = 0; i < num_processors; i++) {
+        cacheArray[i]->print_stats();
+    }
     
 }
