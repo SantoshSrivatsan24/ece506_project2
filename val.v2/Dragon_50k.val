@@ -1,0 +1,62 @@
+===== 506 Personal information =====
+FirstName (MiddleNames) LastName (Change it to your own name)
+UnityID (Change it to your own UID)
+ECE492 Students? YES/NO (Change it according to your own section)
+===== 506 SMP Simulator configuration =====
+L1_SIZE: 8192
+L1_ASSOC: 8
+L1_BLOCKSIZE: 64
+NUMBER OF PROCESSORS: 4
+COHERENCE PROTOCOL: Dragon
+===== 506 SMP Simulator configuration =====
+L1_SIZE:		8192
+L1_ASSOC:		8
+L1_BLOCKSIZE:		64
+NUMBER OF PROCESSORS:	4
+COHERENCE PROTOCOL:	Dragon
+TRACE FILE:		traces/canneal.04t.longTrace
+============ Simulation results (Cache 0) ============
+01. number of reads:                            11127
+02. number of read misses:                      1046
+03. number of writes:                           1206
+04. number of write misses:                     3
+05. total miss rate:                            8.51%
+06. number of writebacks:                       91
+07. number of memory transactions:              1140
+08. number of interventions:                    197
+09. number of flushes:                          0
+10. number of Bus Transactions(BusUpd):         110
+============ Simulation results (Cache 1) ============
+01. number of reads:                            11435
+02. number of read misses:                      993
+03. number of writes:                           1208
+04. number of write misses:                     2
+05. total miss rate:                            7.87%
+06. number of writebacks:                       85
+07. number of memory transactions:              1080
+08. number of interventions:                    225
+09. number of flushes:                          1
+10. number of Bus Transactions(BusUpd):         126
+============ Simulation results (Cache 2) ============
+01. number of reads:                            11284
+02. number of read misses:                      975
+03. number of writes:                           1224
+04. number of write misses:                     2
+05. total miss rate:                            7.81%
+06. number of writebacks:                       84
+07. number of memory transactions:              1061
+08. number of interventions:                    206
+09. number of flushes:                          1
+10. number of Bus Transactions(BusUpd):         128
+============ Simulation results (Cache 3) ============
+01. number of reads:                            11297
+02. number of read misses:                      1035
+03. number of writes:                           1219
+04. number of write misses:                     0
+05. total miss rate:                            8.27%
+06. number of writebacks:                       99
+07. number of memory transactions:              1134
+08. number of interventions:                    207
+09. number of flushes:                          6
+10. number of Bus Transactions(BusUpd):         133
+

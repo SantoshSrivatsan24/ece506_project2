@@ -1,0 +1,47 @@
+===== Simulator configuration =====
+A block shouldn't be modified on the receiving core.
+A block shouldn't be modified on the receiving core.
+===== Simulation results      =====
+01. number of reads: 2339
+02. number of read misses: 445
+03. number of writes: 269
+04. number of write misses: 14
+05. total miss rate: 
+06. number of writebacks: 0
+07. number of memory transactions: 
+08. number of invalidations: 396
+09. number of flushes: 0
+10. number of BusRdX: 14
+===== Simulation results      =====
+01. number of reads: 2341
+02. number of read misses: 407
+03. number of writes: 229
+04. number of write misses: 12
+05. total miss rate: 
+06. number of writebacks: 1
+07. number of memory transactions: 
+08. number of invalidations: 365
+09. number of flushes: 1
+10. number of BusRdX: 12
+===== Simulation results      =====
+01. number of reads: 2396
+02. number of read misses: 373
+03. number of writes: 253
+04. number of write misses: 12
+05. total miss rate: 
+06. number of writebacks: 0
+07. number of memory transactions: 
+08. number of invalidations: 322
+09. number of flushes: 0
+10. number of BusRdX: 12
+===== Simulation results      =====
+01. number of reads: 1969
+02. number of read misses: 449
+03. number of writes: 204
+04. number of write misses: 13
+05. total miss rate: 
+06. number of writebacks: 3
+07. number of memory transactions: 
+08. number of invalidations: 362
+09. number of flushes: 1
+10. number of BusRdX: 13

@@ -1,29 +1,22 @@
-/**
- *  -   This class implements a Bus that a cache connects to.
- *  -   For the requesting core, a signal is posted onto the bus depending 
- *      on the state of the cacheline/block
- *  -   For the receiving core, there is always a bus signal unless the block is
- *      in the invalid state.
- * -    I should use enum classes to construct the state diagram for the modified MSI
- *      protocol.
- * -    I can use inheritance to connect a Cache to the Bus
- *      https://stackoverflow.com/questions/30823958/communication-between-objects-in-c
-*/
-
 #include "bus.h"
 
 Bus::Bus()
-: Port<bus_transaction_e> ()
-, Imp<bus_transaction_e> ()
+: Port<bus_transaction_t> ()
 {}
 
+/**
+ * @brief Receive a bus transaction from a requesting core 
+ * and forward it to all receiving cores
+ * 
+ * @param trans 
+ */
+void Bus::receive(bus_transaction_t &trans) {
 
-void Bus::snoop(bus_transaction_e transaction) {
-    printf ("Received bus transaction: %d!\n", transaction);
-
-    /**
-     * TODO: The bus should post every transaction that it snoops
-     * It posts a transaction on it's port.
-     * That port should be connected to the port implementations of every cache
-    */
+    ulong requesting_core = trans.processor_id;
+    for (ulong core = 0; core < Port<bus_transaction_t>::get_num_ports(); core++) {
+        /* Forward the bus transaction to all receiving cores */
+        if (core != requesting_core) {
+            Port<bus_transaction_t>::send(core, trans);
+        }
+    }
 }

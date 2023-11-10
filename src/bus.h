@@ -5,15 +5,11 @@
 #include "cache.h"
 #include "port.h"
 
-class Bus : public Port<bus_transaction_e>, public Imp<bus_transaction_e> {
-
-private:
-
+class Bus : public Port<bus_transaction_t> {
 
 public:
     Bus();
-
-    virtual void snoop(bus_transaction_e transaction);
+    void receive(bus_transaction_t &trans) override;
 };
 
 

@@ -1,101 +1,53 @@
-/*******************************************************
-                          cache.h
-********************************************************/
-
 #ifndef CACHE_H
 #define CACHE_H
 
 #include <cmath>
 #include <iostream>
+#include "types.h"
 #include "port.h"
-
-typedef unsigned long ulong;
-typedef unsigned char uchar;
-typedef unsigned int uint;
-
-enum state_e : uint8_t {
-   INVALID = 0,
-   CLEAN = 1,
-   MODIFIED = 2,
-};
-
-enum bus_transaction_e : uint8_t {
-   BusRd,
-   BusRdX,
-   BusUpgr
-};
-
-struct bus_transaction_t {
-   ulong processor_id;  /* ID of the requesting core */
-   ulong addr;
-   bus_transaction_e bus_transaction;
-};
-
-class cacheLine 
-{
-protected:
-   ulong tag;
-   state_e state;
-   ulong seq; 
- 
-public:
-   cacheLine()                   { tag = 0; state = INVALID; }
-   ulong get_tag()               { return tag; }
-   ulong get_state()             { return state;}
-   ulong get_seq()               { return seq; }
-   void set_seq(ulong Seq)       { seq = Seq;}
-   void set_state(state_e flags) { state = flags;}
-   void set_tag(ulong a)         { tag = a; }
-   void invalidate()             { tag = 0; state = INVALID; }
-   bool is_valid()               { return (state != INVALID); }
-};
+#include "cache_block.h"  
 
 /**
- * The Cache extends Port in order to send a transaction to the bus
- * The Cache extends Imp in order to receive a transaction from the bus
+ * The Cache extends Port in order to send and receive
+ * bus transactions
 */
-class Cache : public Port<bus_transaction_e>, public Imp<bus_transaction_e> {
-protected:
-   ulong size_, block_size_, assoc_, num_sets_, num_index_bits_, num_block_offset_bits_, tag_mask_, num_blocks_;
-   ulong num_reads_, num_read_misses_, num_writes_, num_write_misses_, num_write_backs_;
+class Cache : public Port<bus_transaction_t> {
+private:
+   /* Data structure to model a cache */
+   cacheBlock **cache;
+   ulong id_;
+   ulong current_cycle;  
 
-   //******///
-   //add coherence counters here///
-   //******///
+   /* Cache configuration */
+   ulong size_, assoc_, block_size_, num_sets_{0}, num_index_bits_{0}, num_block_offset_bits_{0}, tag_mask_{0}, num_blocks_{0};
 
-   cacheLine **cache;
-   ulong calc_tag(ulong addr)     { return (addr >> num_block_offset_bits_);}
-   ulong calc_index(ulong addr)   { return ((addr >> num_block_offset_bits_) & tag_mask_);}
-   ulong calcAddr4Tag(ulong tag)  { return (tag << (num_block_offset_bits_));}
+   /* Performance counters */
+   ulong num_reads_{0}, num_read_misses_{0}, num_writes_{0}, num_write_misses_{0}, num_write_backs_{0};
+
+   /* Coherence counters */
+   ulong num_invalidations_{0}, num_busrdx_{0}, num_flushes_{0}; 
+
+
+   ulong calc_tag(ulong addr);
+   ulong calc_index(ulong addr);
+   ulong calc_addr_for_tag(ulong tag);
+
+   cacheBlock *find_block_to_replace(ulong addr);
+   cacheBlock *fill_block(ulong addr);
+   cacheBlock *find_block(ulong addr);
+   cacheBlock *get_LRU(ulong);
+   void update_LRU(cacheBlock *);
+
+   void post(bus_transaction_t &trans);
+   void receive(bus_transaction_t &trans) override;
    
 public:
-    ulong currentCycle;  
      
-    Cache(int,int,int);
-   ~Cache() { delete cache;}
+    Cache(ulong id, ulong size, ulong assoc, ulong block_size);
+   ~Cache();
    
-   cacheLine *findLineToReplace(ulong addr);
-   cacheLine *fillLine(ulong addr);
-   cacheLine *findLine(ulong addr);
-   cacheLine *getLRU(ulong);
-   
-   ulong get_read_misses()    {return num_read_misses_;} 
-   ulong get_write_misses()   {return num_write_misses_;} 
-   ulong get_reads()          {return num_reads_;}       
-   ulong get_writes()         {return num_writes_;}
-   ulong get_write_backs()    {return num_write_backs_;}
-   
-   void write_back(ulong)     {num_write_backs_++;}
    void Access(ulong,uchar);
    void print_stats();
-   void update_LRU(cacheLine *);
-
-   virtual void snoop(bus_transaction_e);
-
-   //******//
-   //add other functions to handle bus transactions///
-   //******///
-
 };
 
 #endif

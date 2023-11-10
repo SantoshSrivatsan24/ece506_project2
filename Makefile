@@ -32,7 +32,7 @@ smp_cache: $(OBJ)
 	@echo "------------------------------------------------------------"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc | $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -c $^ -o $@
+	$(CXX) $(CXX_FLAGS) -c $^ -o $@
 
 $(OBJ_DIR): 
 	mkdir -p $@
@@ -48,7 +48,7 @@ VALIDATION_FILE = val/Modified_MSI_debug.val
 
 run: all
 	@echo "*** Running ./smp_cache 8192 8 64 4 $(PROTOCOL) $(TRACE_FILE) ***"
-	./smp_cache 8192 8 64 4 $(PROTOCOL) $(TRACE_FILE)
+	./smp_cache 8192 8 64 4 $(PROTOCOL) $(TRACE_FILE) > run.log
 
 val: all
 	@echo "*** Comparing output with $(VALIDATION_FILE) ***"

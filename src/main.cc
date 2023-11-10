@@ -33,14 +33,16 @@ int main(int argc, char *argv[])
     printf("===== Simulator configuration =====\n");
     // print out simulator configuration here
 
-    Bus bus;
+    Bus *bus = new Bus();
     
-    // Using pointers so that we can use inheritance */
+    /* Using pointers so that we can use inheritance */
     Cache **cacheArray = (Cache **) malloc(num_processors * sizeof(Cache));
     for(ulong i = 0; i < num_processors; i++) {
         if(protocol == 0) {
-            cacheArray[i] = new Cache(cache_size, cache_assoc, blk_size);
-            cacheArray[i]->connect(&bus);
+            cacheArray[i] = new Cache(i, cache_size, cache_assoc, blk_size);
+            /* Two way communication between the cache and the bus */
+            cacheArray[i]->connect(bus);
+            bus->connect(cacheArray[i]);
         }
     }
 
@@ -77,5 +79,4 @@ int main(int argc, char *argv[])
     for (int i = 0; i < num_processors; i++) {
         cacheArray[i]->print_stats();
     }
-    
 }

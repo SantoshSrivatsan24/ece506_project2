@@ -3,44 +3,46 @@
 
 #include <vector>
 
-template <typename T> class Imp;
-
-
+/**
+ * Facilitate two way communication between objects.
+ * Ports are connected to other ports
+*/
 template <typename T>
 class Port {
 
 private:
-    /**
-     * A port can have multiple implementations.
-     * This models a one to many connection
-    */
-    std::vector<Imp<T> *> port_imp_;
+    /* A port can be connected to multiple other ports */
+    std::vector<Port<T> *> ports_;
 
 public:
     Port() {}
 
-    /* Connect the port to its implementation */
-    void connect(Imp<T> *imp) {
-        port_imp_.push_back(imp);
+    /* Connect the port to another port */
+    void connect(Port<T> *port) {
+        ports_.push_back(port);
     }
 
-    /* Write a transaction onto the port */
-    void post(T transaction) {
+    int get_num_ports() {
+        return ports_.size();
+    }
+
+    /* Broadcast the transaction onto every port */
+    void send(T &trans) {
         /* Iterate over every port implementation connected to this port */
-        for (Imp<T> * imp : port_imp_) {
-            /* The port's implementation `snoops` the transaction that the port writes */
-            imp->snoop(transaction);
+        for (Port<T> *port : ports_) {
+            /* A transaction sent over one port is received by the other ports */
+            port->receive(trans);
         }
     }
+
+    /* Send the transcation on a specific port */
+    void send(uint32_t port_id, T &trans) {
+        ports_[port_id]->receive(trans);
+    }
+
+    /* The receiver decides how it wants to handle the transaction */
+    virtual void receive (T &trans) = 0;
 };
 
-template <typename T>
-class Imp {
-
-public:
-    Imp() {}
-
-    virtual void snoop(T transaction) = 0;
-};
 
 #endif /* __PORT_H__ */
