@@ -1,7 +1,5 @@
 #include "factory.h"
 
-// class_registry_t Factory::class_registry;
-
 /**
  * @brief 
  * 

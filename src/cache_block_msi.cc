@@ -1,6 +1,10 @@
 #include "cache_block.h"
 #include "factory.h"
 
+/**
+ * @brief Implement a state machine for a modified version
+ * of the MSI protocol
+ */
 class CacheBlockMSI : public CacheBlock {
 
 public:
