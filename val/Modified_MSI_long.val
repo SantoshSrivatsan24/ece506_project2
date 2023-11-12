@@ -16,7 +16,7 @@ TRACE FILE:     trace/canneal.04t.longTrace
 04. number of write misses:                     689
 05. total miss rate:                            17.77%
 06. number of writebacks:                       700
-07. number of memory transactions:              22890
+07. number of memory transactions:              22842
 08. number of invalidations:                    20585
 09. number of flushes:                          93
 10. number of BusRdX:                           689
@@ -27,7 +27,7 @@ TRACE FILE:     trace/canneal.04t.longTrace
 04. number of write misses:                     663
 05. total miss rate:                            18.08%
 06. number of writebacks:                       679
-07. number of memory transactions:              22891
+07. number of memory transactions:              22833
 08. number of invalidations:                    20666
 09. number of flushes:                          77
 10. number of BusRdX:                           663
@@ -38,7 +38,7 @@ TRACE FILE:     trace/canneal.04t.longTrace
 04. number of write misses:                     690
 05. total miss rate:                            17.07%
 06. number of writebacks:                       714
-07. number of memory transactions:              22508
+07. number of memory transactions:              22447
 08. number of invalidations:                    19988
 09. number of flushes:                          97
 10. number of BusRdX:                           690
@@ -49,7 +49,7 @@ TRACE FILE:     trace/canneal.04t.longTrace
 04. number of write misses:                     684
 05. total miss rate:                            16.74%
 06. number of writebacks:                       759
-07. number of memory transactions:              21881
+07. number of memory transactions:              21780
 08. number of invalidations:                    18552
 09. number of flushes:                          76
 10. number of BusRdX:                           684

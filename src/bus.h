@@ -12,5 +12,4 @@ public:
     void receive(bus_transaction_t &trans) override;
 };
 
-
 #endif

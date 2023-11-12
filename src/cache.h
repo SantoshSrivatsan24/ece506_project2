@@ -14,8 +14,11 @@
 class Cache : public Port<bus_transaction_t> {
 private:
    /* Data structure to model a cache */
-   cacheBlock **cache;
-   ulong id_;
+   using set_t = std::vector<CacheBlock*>;
+   using cache_t = std::vector<set_t>;
+   cache_t cache_; 
+
+   uint id_;
    ulong current_cycle;  
 
    /* Cache configuration */
@@ -25,25 +28,24 @@ private:
    ulong num_reads_{0}, num_read_misses_{0}, num_writes_{0}, num_write_misses_{0}, num_write_backs_{0};
 
    /* Coherence counters */
-   ulong num_invalidations_{0}, num_busrdx_{0}, num_flushes_{0}; 
-
+   ulong num_invalidations_{0}, num_busrdx_{0}, num_flushes_{0};
 
    ulong calc_tag(ulong addr);
    ulong calc_index(ulong addr);
    ulong calc_addr_for_tag(ulong tag);
 
-   cacheBlock *find_block_to_replace(ulong addr);
-   cacheBlock *fill_block(ulong addr);
-   cacheBlock *find_block(ulong addr);
-   cacheBlock *get_LRU(ulong);
-   void update_LRU(cacheBlock *);
+   CacheBlock *find_block_to_replace(ulong addr);
+   CacheBlock *fill_block(ulong addr);
+   CacheBlock *find_block(ulong addr);
+   CacheBlock *get_LRU(ulong);
+   void update_LRU(CacheBlock *);
 
    void post(bus_transaction_t &trans);
    void receive(bus_transaction_t &trans) override;
    
 public:
      
-    Cache(ulong id, ulong size, ulong assoc, ulong block_size);
+    Cache(uint id, ulong size, ulong assoc, ulong block_size);
    ~Cache();
    
    void Access(ulong,uchar);

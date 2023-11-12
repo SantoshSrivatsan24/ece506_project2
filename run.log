@@ -1,47 +1,55 @@
+===== 506 Personal information =====
+Name: Santosh Srivatsan
+UnityID: srsrivat
+ECE 492 student? No
 ===== Simulator configuration =====
-A block shouldn't be modified on the receiving core.
-A block shouldn't be modified on the receiving core.
-===== Simulation results      =====
-01. number of reads: 2339
-02. number of read misses: 445
-03. number of writes: 269
-04. number of write misses: 14
-05. total miss rate: 
-06. number of writebacks: 0
-07. number of memory transactions: 
-08. number of invalidations: 396
-09. number of flushes: 0
-10. number of BusRdX: 14
-===== Simulation results      =====
-01. number of reads: 2341
-02. number of read misses: 407
-03. number of writes: 229
-04. number of write misses: 12
-05. total miss rate: 
-06. number of writebacks: 1
-07. number of memory transactions: 
-08. number of invalidations: 365
-09. number of flushes: 1
-10. number of BusRdX: 12
-===== Simulation results      =====
-01. number of reads: 2396
-02. number of read misses: 373
-03. number of writes: 253
-04. number of write misses: 12
-05. total miss rate: 
-06. number of writebacks: 0
-07. number of memory transactions: 
-08. number of invalidations: 322
-09. number of flushes: 0
-10. number of BusRdX: 12
-===== Simulation results      =====
-01. number of reads: 1969
-02. number of read misses: 449
-03. number of writes: 204
-04. number of write misses: 13
-05. total miss rate: 
-06. number of writebacks: 3
-07. number of memory transactions: 
-08. number of invalidations: 362
-09. number of flushes: 1
-10. number of BusRdX: 13
+L1_SIZE: 8192
+L1_ASSOC: 8
+L1_BLOCKSIZE: 64
+NUMBER OF PROCESSORS: 4
+COHERENCE PROTOCOL: MSI
+TRACE FILE: trace/canneal.04t.longTrace
+============ Simulation results (Cache 0) ============
+01. number of reads:                         112661
+02. number of read misses:                   21453
+03. number of writes:                        11942
+04. number of write misses:                  689
+05. total miss rate:                         17.77%
+06. number of writebacks:                    700
+07. number of memory transactions:           22842
+08. number of invalidations:                 20585
+09. number of flushes:                       93
+10. number of BusRdX:                        689
+============ Simulation results (Cache 1) ============
+01. number of reads:                         110830
+02. number of read misses:                   21491
+03. number of writes:                        11710
+04. number of write misses:                  663
+05. total miss rate:                         18.08%
+06. number of writebacks:                    679
+07. number of memory transactions:           22833
+08. number of invalidations:                 20666
+09. number of flushes:                       77
+10. number of BusRdX:                        663
+============ Simulation results (Cache 2) ============
+01. number of reads:                         114938
+02. number of read misses:                   21043
+03. number of writes:                        12383
+04. number of write misses:                  690
+05. total miss rate:                         17.07%
+06. number of writebacks:                    714
+07. number of memory transactions:           22447
+08. number of invalidations:                 19988
+09. number of flushes:                       97
+10. number of BusRdX:                        690
+============ Simulation results (Cache 3) ============
+01. number of reads:                         113428
+02. number of read misses:                   20337
+03. number of writes:                        12108
+04. number of write misses:                  684
+05. total miss rate:                         16.74%
+06. number of writebacks:                    759
+07. number of memory transactions:           21780
+08. number of invalidations:                 18552
+09. number of flushes:                       76
+10. number of BusRdX:                        684
