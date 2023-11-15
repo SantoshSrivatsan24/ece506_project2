@@ -5,11 +5,12 @@
 #include "cache.h"
 #include "port.h"
 
-class Bus : public Port<bus_transaction_t> {
+class Bus : public Port<bus_transaction_t>{
 
 public:
     Bus();
-    void receive(bus_transaction_t &trans) override;
+    void receive(const bus_transaction_t &trans) override;
+    void respond(bus_transaction_t &trans) override;
 };
 
 #endif

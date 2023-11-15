@@ -8,10 +8,10 @@
 #include "cache_block.h"  
 
 /**
- * The Cache extends Port in order to send and receive
- * bus transactions
+ * The Cache extends Port<bus_transaction_t> in order to send and receive bus transactions
+ * The Cache extends Port<bool> in order to snoop the COPIES_EXIST bus line.
 */
-class Cache : public Port<bus_transaction_t> {
+class Cache : public Port<bus_transaction_t>{
 private:
    /* Data structure to model a cache */
    using set_t = std::vector<CacheBlock*>;
@@ -19,16 +19,24 @@ private:
    cache_t cache_; 
 
    uint id_;
-   ulong current_cycle;  
+   ulong current_cycle_;  
 
    /* Cache configuration */
    ulong size_, assoc_, block_size_, num_sets_{0}, num_index_bits_{0}, num_block_offset_bits_{0}, tag_mask_{0}, num_blocks_{0};
+
+   std::string protocol_;
 
    /* Performance counters */
    ulong num_reads_{0}, num_read_misses_{0}, num_writes_{0}, num_write_misses_{0}, num_write_backs_{0};
 
    /* Coherence counters */
-   ulong num_invalidations_{0}, num_busrdx_{0}, num_flushes_{0};
+   ulong num_invalidations_{0}, num_interventions_{0}, num_busrdx_{0}, num_busupd_{0}, num_flushes_{0};
+
+   ulong get_num_invalidations() const;
+   ulong get_num_interventions() const;
+   ulong get_num_busrdx() const;
+   ulong get_num_busupd() const;
+   ulong get_num_flushes() const;
 
    ulong calc_tag(ulong addr);
    ulong calc_index(ulong addr);
@@ -40,15 +48,15 @@ private:
    CacheBlock *get_LRU(ulong);
    void update_LRU(CacheBlock *);
 
-   void post(bus_transaction_t &trans);
-   void receive(bus_transaction_t &trans) override;
+   void receive(const bus_transaction_t &trans) override;
+   void respond(bus_transaction_t &trans) override;
    
 public:
      
-    Cache(uint id, ulong size, ulong assoc, ulong block_size);
+    Cache(uint id, ulong size, ulong assoc, ulong block_size, std::string protocol);
    ~Cache();
    
-   void Access(ulong,uchar);
+   void Access(ulong addr, op_e op);
    void print_stats();
 };
 

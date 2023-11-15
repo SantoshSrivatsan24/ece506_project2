@@ -26,22 +26,31 @@ public:
         return ports_.size();
     }
 
-    /* Broadcast the transaction onto every port */
-    void send(T &trans) {
-        /* Iterate over every port implementation connected to this port */
-        for (Port<T> *port : ports_) {
-            /* A transaction sent over one port is received by the other ports */
-            port->receive(trans);
-        }
+    /* Send a transaction over the first connected port */
+    void send(const T &trans) {
+        ports_[0]->receive(trans);
     }
 
-    /* Send the transcation on a specific port */
-    void send(uint32_t port_id, T &trans) {
+    /* Send a transcation over a specific port */
+    void send(uint32_t port_id, const T &trans) {
         ports_[port_id]->receive(trans);
     }
 
-    /* The receiver decides how it wants to handle the transaction */
-    virtual void receive (T &trans) = 0;
+    /* Request a transaction from the first connected port */
+    void request(T &trans) {
+        ports_[0]->respond(trans);
+    }
+
+    /* Request a transaction from a specific port */
+    void request(uint32_t port_id, T &trans) {
+        ports_[port_id]->respond(trans);
+    }
+
+    /* The receiver decides how it wants to handle the sent transaction */
+    virtual void receive (const T &trans) = 0;
+
+    /* The receiver decides how it wants to handle the requested transaction */
+    virtual void respond (T &trans) = 0;
 };
 
 

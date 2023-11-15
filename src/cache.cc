@@ -1,32 +1,15 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "cache.h"
-// #include "cache_block_msi.h"
 #include "factory.h"
 
-#define BANNER(s, ...) \
-   do { \
-      printf("============ "); \
-      printf(s, ## __VA_ARGS__); \
-      printf(" ============\n"); \
-   } while(0)
-
-#define TRACE_STATS(i, s, d) \
-   do { \
-      printf("%02d. %-40s %lu\n", i, s, d); \
-   } while(0)
-
-#define TRACE_STATSF(i, s, d) \
-   do { \
-      printf("%02d. %-40s %.2lf%%\n", i, s, d); \
-   } while(0)
-
-Cache::Cache(uint id, ulong size, ulong assoc, ulong block_size)
+Cache::Cache(uint id, ulong size, ulong assoc, ulong block_size, std::string protocol)
 : Port<bus_transaction_t>  ()
 , id_          {id}
 , size_        {size}
 , assoc_       {assoc}
 , block_size_  {block_size}
+, protocol_    {protocol}
 {
    num_sets_               = size_ / (block_size_ * assoc_);
    num_blocks_             = size_ / block_size_;
@@ -41,16 +24,18 @@ Cache::Cache(uint id, ulong size, ulong assoc, ulong block_size)
    
    for(uint i = 0; i < num_sets_; i++) {
       for(uint j = 0; j < assoc_; j++) {
-         // cache_[i][j] = new CacheBlock();
-
-         cache_[i][j] = Factory::get_instance()->create("MSI");
+         cache_[i][j] = FACTORY_CREATE(protocol);
          cache_[i][j]->invalidate();
       }
    } 
 }
 
 Cache::~Cache() {
-   
+   for(uint i = 0; i < num_sets_; i++) {
+      for(uint j = 0; j < assoc_; j++) {
+         delete cache_[i][j];
+      }
+   } 
 }
 
 ulong Cache::calc_tag(ulong addr) {
@@ -73,42 +58,46 @@ ulong Cache::calc_addr_for_tag(ulong tag) {
  * @param addr 
  * @param op R/W
  */
-void Cache::Access(ulong addr,uchar op) {
-   /**
-    * Per cache global counter to maintain LRU order
-    * among cache ways.
-    * Updated on every cache access.
-    */
-   current_cycle++;
-         
-   if(op == 'w') num_writes_++;
-   else          num_reads_++;
+void Cache::Access(ulong addr, op_e op) {
+
+   current_cycle_++;
+
+   op_e operation = op;
    
+   /* Update performance counters */
+   if(operation == op_e::PrWr) {
+      num_writes_++;
+   } else if (operation == op_e::PrRd) {
+      num_reads_++;
+   }
+
    CacheBlock *block = find_block(addr);
-   bus_signal_e bus_signal;
 
    /* Miss */
    if(block == NULL) {
-      if(op == 'w')  num_write_misses_++;
-      else           num_read_misses_++;
 
-      CacheBlock *new_block = fill_block(addr);
-      /* A state transition could result in a bus signal */ 
-      bus_signal = new_block->next_state(op);   
+      if (operation == op_e::PrWr) {
+         num_write_misses_++;
+         operation = op_e::PrWrMiss;
+      } else if (operation == op_e::PrRd) {
+         num_read_misses_++;
+         operation = op_e::PrRdMiss;
+      }
+      block = fill_block(addr); 
    }
 
-   /* Hit. Update LRU and dirty flags */
-   else {
-      update_LRU(block);
-      /* A state transition could result in a bus signal */
-      bus_signal = block->next_state(op);
-   }
+   update_LRU(block);
 
-   /* Construct a bus transaction */
-   bus_transaction_t trans = {id_, addr, bus_signal};
+   bus_transaction_t requesting_core_trans (id_, addr);
+
+   /* Find out whether other caches have the block */
+   Port<bus_transaction_t>::request(requesting_core_trans);
+
+   /* A state transition could result in one or more bus signals */
+   requesting_core_trans.bus_signals = block->next_state(operation, requesting_core_trans.copies_exist);
 
    /* Post the transaction on the bus */
-   post(trans);
+   Port<bus_transaction_t>::send(requesting_core_trans);
 }
 
 /******************************************************************/
@@ -130,7 +119,7 @@ CacheBlock* Cache::find_block(ulong addr) {
 
 /* Upgrade LRU block to be MRU block */
 void Cache::update_LRU(CacheBlock *block) {
-   block->set_seq(current_cycle);  
+   block->set_seq(current_cycle_);  
 }
 
 /******************************************************************/
@@ -139,7 +128,7 @@ void Cache::update_LRU(CacheBlock *block) {
 CacheBlock * Cache::get_LRU(ulong addr) {
 
    ulong victim = assoc_;
-   ulong min    = current_cycle;
+   ulong min    = current_cycle_;
    ulong i      = calc_index(addr);
    
    for(ulong j = 0; j < assoc_; j++) {
@@ -166,7 +155,7 @@ CacheBlock *Cache::find_block_to_replace(ulong addr) {
 
    CacheBlock *victim = get_LRU(addr);
 
-   if (victim->get_state() == MODIFIED) {
+   if (victim->is_dirty()) {
       num_write_backs_++;
    }
 
@@ -184,8 +173,6 @@ CacheBlock *Cache::fill_block(ulong addr) {
   
    CacheBlock *victim = find_block_to_replace(addr);
    assert(victim != 0);
-
-   update_LRU(victim);
       
    ulong tag = calc_tag(addr);   
    victim->set_tag(tag);
@@ -195,38 +182,11 @@ CacheBlock *Cache::fill_block(ulong addr) {
 /******************************************************************/
 
 /**
- * @brief The requesting core posts a transaction onto the bus
- * Wrapper function for Port<bus_transaction_t>::send()
- * 
- * @param trans BusRd/BusRdX
- */
-void Cache::post(bus_transaction_t &trans) {
-
-   switch (trans.bus_signal) {
-
-      case BusRd:  
-         Port<bus_transaction_t>::send(trans);
-         return; 
-
-      case BusRdX: 
-         num_busrdx_++;
-         Port<bus_transaction_t>::send(trans);
-         return;
-
-      default:  
-         return;
-   }
-}
-
-/******************************************************************/
-
-/**
  * @brief A receiving core snoops a transaction from the bus
  * 
- * @param trans BusRd/BusRdx
+ * @param trans BusRd/BusRdx/BusUpd
  */
-void Cache::receive(bus_transaction_t &trans) {
-
+void Cache::receive(const bus_transaction_t &trans) {
 
    CacheBlock *block = find_block(trans.addr);
 
@@ -238,35 +198,33 @@ void Cache::receive(bus_transaction_t &trans) {
       return;
    }
 
-   num_invalidations_++;
-   bus_signal_e bus_signal = block->next_state(trans.bus_signal);
+   for (bus_signal_e requesting_core_signal : trans.bus_signals) {
 
-   /* If a receiving core sees a flush*/
-   if (bus_signal == Flush) {
-      num_flushes_++;
-      num_write_backs_++; /* A flush results in a writeback */
+      bus_transaction_t receiving_core_trans (id_, trans.addr);
+      receiving_core_trans.bus_signals = block->next_state(requesting_core_signal);
+
+      /* A flush results in a writeback */
+      if (std::find (receiving_core_trans.bus_signals.begin(), receiving_core_trans.bus_signals.end(), bus_signal_e::Flush) != receiving_core_trans.bus_signals.end()) {
+         num_write_backs_++;
+      }
    }
 }
 
 /******************************************************************/
 
-void Cache::print_stats() { 
+/**
+ * @brief A receiving core checks whether it has a copy of a requested block
+ * 
+ */
+void Cache::respond(bus_transaction_t &trans) {
 
-   double miss_rate = (double) (num_read_misses_ + num_write_misses_) * 100 / (num_reads_ + num_writes_);
-   ulong num_memory_transactions = num_read_misses_ + num_write_misses_ + num_write_backs_;
+   CacheBlock *block = find_block(trans.addr);
 
-   BANNER("Simulation results (Cache %u)", id_);
-
-   TRACE_STATS (1, "number of reads:",                 num_reads_);
-   TRACE_STATS (2, "number of read misses:",           num_read_misses_);
-   TRACE_STATS (3, "number of writes:",                num_writes_);
-   TRACE_STATS (4, "number of write misses:",          num_write_misses_);
-   TRACE_STATSF(5, "total miss rate:",                 miss_rate);
-   TRACE_STATS (6, "number of writebacks:",            num_write_backs_);
-   TRACE_STATS (7, "number of memory transactions:",   num_memory_transactions);
-   TRACE_STATS (8, "number of invalidations:",         num_invalidations_);
-   TRACE_STATS (9, "number of flushes:",               num_flushes_);
-   TRACE_STATS (10, "number of BusRdX:",               num_busrdx_);
+   if (block == NULL) {
+      trans.copies_exist |= false;
+   } else {
+      trans.copies_exist |= true;
+   }
 }
 
 /******************************************************************/

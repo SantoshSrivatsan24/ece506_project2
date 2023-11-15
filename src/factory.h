@@ -31,12 +31,15 @@ public:
     static Factory* get_instance();
 };
 
+#define FACTORY_CREATE(NAME) \
+    Factory::get_instance()->create(NAME);
+
 class Registry {
 public:
     Registry (const std::string &name, callback_t callback);
 };
 
-#define REGISTER_CLASS(NAME, TYPE) \
+#define FACTORY_REGISTER(NAME, TYPE) \
     static Registry registry(NAME, \
         [](void)->CacheBlock* {return new TYPE();}); /* This is the callback function */
 

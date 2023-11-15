@@ -40,9 +40,9 @@ $(OBJ_DIR):
 clean:
 	rm -rf $(OBJ_DIR) smp_cache
 
-PROTOCOL = "MSI"
-TRACE_FILE = trace/canneal.04t.longTrace
-VALIDATION_FILE = val/Modified_MSI_long.val 
+PROTOCOL = "Dragon"
+TRACE_FILE = traces/canneal.04t.longTrace
+VALIDATION_FILE = val/Dragon_long.val
 
 run: all
 	@echo "*** Running ./smp_cache 8192 8 64 4 $(PROTOCOL) $(TRACE_FILE) ***"

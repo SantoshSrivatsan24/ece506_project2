@@ -10,6 +10,9 @@ using namespace std;
 #include "cache.h"
 #include "bus.h"
 
+#define STRINGIFY(x) #x
+
+
 int main(int argc, char *argv[]) {
     
     if(argv[1] == NULL){
@@ -24,6 +27,7 @@ int main(int argc, char *argv[]) {
     ulong num_processors    = atoi(argv[4]);
     char *protocol          = new char[20];
     protocol                = argv[5];
+    // protocol_e protocol     = static_cast<protocol_e>(atoi(argv[5]));
     char *fname             = new char[20];
     fname                   = argv[6];
 
@@ -36,7 +40,7 @@ int main(int argc, char *argv[]) {
     printf("===== 506 Personal information =====\n");
     printf("Name: Santosh Srivatsan\n");
     printf("UnityID: srsrivat\n");
-    printf("ECE 492 student? No\n");
+    printf("ECE492 student? No\n");
 
     printf("===== Simulator configuration =====\n");
     printf("L1_SIZE: %lu\n", cache_size);
@@ -50,14 +54,14 @@ int main(int argc, char *argv[]) {
     std::vector<Cache*> caches(num_processors);
 
     for(uint i = 0; i < num_processors; i++) {
-        caches[i] = new Cache(i, cache_size, cache_assoc, blk_size);
+        caches[i] = new Cache(i, cache_size, cache_assoc, blk_size, protocol);
         /* Two way communication between the cache and the bus */
         caches[i]->connect(bus);
         bus->connect(caches[i]);
     }
 
     ulong proc;
-    char op;
+    op_e op;
     ulong addr;
 
     while(fscanf(trace, "%lu %c %lx", &proc, &op, &addr) != EOF) {
