@@ -3,6 +3,8 @@
 ********************************************************/
 
 #include <stdlib.h>
+#include <iostream>
+#include <iomanip>
 #include <assert.h>
 #include <fstream>
 using namespace std;

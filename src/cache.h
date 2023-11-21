@@ -1,8 +1,6 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-#include <cmath>
-#include <iostream>
 #include "types.h"
 #include "port.h"
 #include "cache_block.h"  
