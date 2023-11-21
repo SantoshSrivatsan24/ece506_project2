@@ -9,7 +9,6 @@
 
 /**
  * The Cache extends Port<bus_transaction_t> in order to send and receive bus transactions
- * The Cache extends Port<bool> in order to snoop the COPIES_EXIST bus line.
 */
 class Cache : public Port<bus_transaction_t>{
 private:
@@ -53,7 +52,7 @@ private:
    
 public:
      
-    Cache(uint id, ulong size, ulong assoc, ulong block_size, std::string protocol);
+    Cache(uint id, ulong size, ulong assoc, ulong block_size, protocol_e protocol);
    ~Cache();
    
    void Access(ulong addr, op_e op);

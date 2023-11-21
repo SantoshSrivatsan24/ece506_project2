@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "cache_block.h"
 #include "factory.h"
 
@@ -49,8 +50,7 @@ public:
                     num_busupd_++;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE);
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
 
@@ -63,8 +63,7 @@ public:
                     next_state = state_e::MODIFIED;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE);
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
 
@@ -77,8 +76,7 @@ public:
                     next_state = state_e::MODIFIED;
                 } 
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE); 
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
 
@@ -97,8 +95,7 @@ public:
                     num_busupd_++;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE);  
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
 
@@ -117,14 +114,12 @@ public:
                     num_busupd_++;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE);  
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
 
             default: 
-                fprintf (stderr, "ERROR:: Encountered unknown state %hhu for the Dragon protocol.\n", state_);
-                exit (EXIT_FAILURE);
+                FATAL("Encountered unknown state for the " << state_ << " protocol.");
         }
 
         state_ = next_state;
@@ -143,70 +138,73 @@ public:
 
         switch(state_) {
             case state_e::MODIFIED:
-                if (signal == bus_signal_e::BusRd) {
-                    next_state = state_e::SHARED_MODIFIED;
-                    bus_signals = {bus_signal_e::Flush};
-                    num_interventions_++;
-                    num_flushes_++;
-                }
-                else {
-                    /* The requesting core doesn't have the block to issue a BusUpd */
-                    fprintf (stderr, "%s::%d:: Encountered invalid signal %hhu.\n", __FILE__, __LINE__, signal);
-                    exit(EXIT_FAILURE);
+                switch(signal) {
+                    case bus_signal_e::BusRd    : next_state = state_e::SHARED_MODIFIED;
+                                                  bus_signals = {bus_signal_e::Flush};
+                                                  num_interventions_++;
+                                                  num_flushes_++;
+                                                  break;
+
+                    default                     : FATAL("Encountered invalid signal " << signal);
                 }
                 break;
 
+            
             case state_e::EXCLUSIVE:
-                if (signal == bus_signal_e::BusRd) {
-                    next_state = state_e::SHARED_CLEAN;
-                    num_interventions_++;
-                }
-                else {
-                     /* The requesting core doesn't have the block to issue a BusUpd */
-                    fprintf (stderr, "%s::%d:: Encountered invalid signal %hhu.\n", __FILE__, __LINE__, signal);
-                    exit(EXIT_FAILURE);
+                switch(signal) {
+                    case bus_signal_e::BusRd    : next_state = state_e::SHARED_CLEAN;
+                                                  num_interventions_++;
+                                                  break;
+
+                    default                     : FATAL("Encountered invalid signal " << signal);
                 }
                 break;
+
 
             case state_e::SHARED_CLEAN:
-                if (signal == bus_signal_e::BusRd) {
-                    next_state = state_e::SHARED_CLEAN;
-                }
-                else if (signal == bus_signal_e::BusUpd) {
-                    next_state = state_e::SHARED_CLEAN;
-                    bus_signals = {bus_signal_e::Update};
-                }
-                else if (signal == bus_signal_e::Flush) {
-                    next_state = state_e::SHARED_CLEAN;
-                }
-                else {
-                    fprintf (stderr, "%s::%d:: Encountered invalid signal %hhu.\n", __FILE__, __LINE__, signal);
-                    exit(EXIT_FAILURE);
+                switch(signal) {
+                    case bus_signal_e::BusRd    : next_state = state_e::SHARED_CLEAN; 
+                                                  break;
+
+                    case bus_signal_e::BusUpd   : next_state = state_e::SHARED_CLEAN; 
+                                                  bus_signals = {bus_signal_e::Update}; 
+                                                  break;
+
+                    case bus_signal_e::Flush    : next_state = state_e::SHARED_CLEAN; 
+                                                  break;
+
+                    case bus_signal_e::Update   : next_state = state_e::SHARED_CLEAN; 
+                                                  break;
+
+                    default                     :  FATAL("Encountered invalid signal " << signal);;
                 }
                 break;
+
 
             case state_e::SHARED_MODIFIED:
-                if (signal == bus_signal_e::BusRd) {
-                    next_state = state_e::SHARED_MODIFIED;
-                    bus_signals = {bus_signal_e::Flush};
-                    num_flushes_++;
-                }
-                else if (signal == bus_signal_e::BusUpd) {
-                    next_state = state_e::SHARED_CLEAN;
-                    bus_signals = {bus_signal_e::Update};
-                }
-                else if (signal == bus_signal_e::Flush) {
-                    next_state = state_e::SHARED_CLEAN;
-                }
-                else {
-                    fprintf (stderr, "%s::%d:: Encountered invalid signal %hhu.\n", __FILE__, __LINE__, signal);
-                    exit(EXIT_FAILURE);
+                switch(signal) {
+                    case bus_signal_e::BusRd    : next_state = state_e::SHARED_MODIFIED; 
+                                                  bus_signals = {bus_signal_e::Flush};
+                                                  num_flushes_++;
+                                                  break;
+
+                    case bus_signal_e::BusUpd   : next_state = state_e::SHARED_CLEAN;
+                                                  bus_signals = {bus_signal_e::Update};
+                                                  break;
+
+                    case bus_signal_e::Flush    : next_state = state_e::SHARED_CLEAN;
+                                                  break;
+
+                    case bus_signal_e::Update   : next_state = state_e::SHARED_CLEAN;
+                                                  break;
+
+                    default                     :  FATAL("Encountered invalid signal " << signal);
                 }
                 break;
 
+
             default:
-                fprintf (stderr, "ERROR:: Encountered unknown state %hhu for the Dragon protocol.\n", state_);
-                exit (EXIT_FAILURE);
+                FATAL ("Encountered unknown state " << state_ << " for the Dragon protocol.");
         }
         state_ = next_state;
         return bus_signals;

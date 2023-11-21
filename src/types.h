@@ -10,25 +10,10 @@ using ulong = unsigned long;
 using uchar = unsigned char;
 using uint = unsigned int;
 
-// enum protocol_e : uint8_t {
-//    MSI,
-//    Dragon
-// };
-
-// std::ostream &operator<< (std::ostream &os, const protocol_e &p) {
-//    switch(p) {
-//       case protocol_e::MSI: return os << "MSI";
-//       case protocol_e::Dragon: return os << "Dragon";
-//    }
-//    return os;
-// }
-
-// std::string to_string(const protocol_e &p) {
-//    std::stringstream ss;
-//    ss << p;
-//    std::string str = ss.str();
-//    return str;
-// }
+enum protocol_e : uint8_t {
+   MSI,
+   Dragon
+};
 
 enum class op_e : char {
    PrRd = 'r',
@@ -54,6 +39,11 @@ enum class bus_signal_e : uint8_t {
    Update,
 };
 
+std::ostream &operator<< (std::ostream &os, const protocol_e &p);
+std::ostream &operator<< (std::ostream &os, const op_e &o);
+std::ostream &operator<< (std::ostream &os, const state_e &s);
+std::ostream &operator<< (std::ostream &os, const bus_signal_e &s);
+
 using bus_signal_t = std::vector<bus_signal_e>;
 
 struct bus_transaction_t {
@@ -75,5 +65,10 @@ struct bus_transaction_t {
    bool         copies_exist;
 };
 
+#define FATAL(msg) \
+   do { \
+      std::cout<<__FILE__<<"::"<<__LINE__<<msg<<'\n'; \
+      exit(EXIT_FAILURE); \
+   } while(0)
 
 #endif

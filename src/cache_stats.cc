@@ -11,17 +11,18 @@
 
 #define TRACE_STATS(i, s, d) \
    do { \
-      printf("%02d. %-40s %lu\n", i, s, d); \
+      printf("%02d. %-43s %lu\n", i, s, d); \
    } while(0)
 
 #define TRACE_STATSF(i, s, d) \
    do { \
-      printf("%02d. %-40s %.2lf%%\n", i, s, d); \
+      printf("%02d. %-43s %.2lf%%\n", i, s, d); \
    } while(0)
 
 
 void Cache::print_stats() { 
 
+   /* Gather coherence counters */
    for(uint i = 0; i < num_sets_; i++) {
       for(uint j = 0; j < assoc_; j++) {
          num_invalidations_   += cache_[i][j]->get_num_invalidations();
@@ -52,6 +53,7 @@ void Cache::print_stats() {
    else if (protocol_ == "Dragon") {
    TRACE_STATS (8, "number of interventions:",           num_interventions_);
    TRACE_STATS (9, "number of flushes:",                 num_flushes_);
-   TRACE_STATS (10, "number of Bus Transactions (BusUpd):", num_busupd_);
+   TRACE_STATS (10, "number of Bus Transactions(BusUpd):", num_busupd_);
+
    }
 }

@@ -24,7 +24,6 @@ public:
    virtual ~CacheBlock()         = default;
    ulong get_tag() const         { return tag_;}
    state_e get_state() const     { return state_;}
-   void set_state(state_e state) { state_ = state; }
    ulong get_seq() const         { return seq_; }
    void set_seq(ulong seq)       { seq_ = seq; }
    void set_tag(ulong tag)       { tag_ = tag; }

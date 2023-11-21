@@ -31,13 +31,13 @@ public:
     static Factory* get_instance();
 };
 
-#define FACTORY_CREATE(NAME) \
-    Factory::get_instance()->create(NAME);
-
 class Registry {
 public:
     Registry (const std::string &name, callback_t callback);
 };
+
+#define FACTORY_CREATE(NAME) \
+    Factory::get_instance()->create(NAME);
 
 #define FACTORY_REGISTER(NAME, TYPE) \
     static Registry registry(NAME, \

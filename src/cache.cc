@@ -1,15 +1,24 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <algorithm>
 #include "cache.h"
 #include "factory.h"
 
-Cache::Cache(uint id, ulong size, ulong assoc, ulong block_size, std::string protocol)
+static std::string to_string(const protocol_e &p) {
+   std::stringstream ss;
+   ss << p;
+   std::string str = ss.str();
+   return str;
+}
+
+
+Cache::Cache(uint id, ulong size, ulong assoc, ulong block_size, protocol_e protocol)
 : Port<bus_transaction_t>  ()
 , id_          {id}
 , size_        {size}
 , assoc_       {assoc}
 , block_size_  {block_size}
-, protocol_    {protocol}
+, protocol_    {to_string(protocol)}
 {
    num_sets_               = size_ / (block_size_ * assoc_);
    num_blocks_             = size_ / block_size_;
@@ -24,7 +33,8 @@ Cache::Cache(uint id, ulong size, ulong assoc, ulong block_size, std::string pro
    
    for(uint i = 0; i < num_sets_; i++) {
       for(uint j = 0; j < assoc_; j++) {
-         cache_[i][j] = FACTORY_CREATE(protocol);
+         /* The desired cache block depends on the protocol */
+         cache_[i][j] = FACTORY_CREATE(protocol_);
          cache_[i][j]->invalidate();
       }
    } 
@@ -200,11 +210,10 @@ void Cache::receive(const bus_transaction_t &trans) {
 
    for (bus_signal_e requesting_core_signal : trans.bus_signals) {
 
-      bus_transaction_t receiving_core_trans (id_, trans.addr);
-      receiving_core_trans.bus_signals = block->next_state(requesting_core_signal);
+      bus_signal_t receiving_core_signals = block->next_state(requesting_core_signal);
 
       /* A flush results in a writeback */
-      if (std::find (receiving_core_trans.bus_signals.begin(), receiving_core_trans.bus_signals.end(), bus_signal_e::Flush) != receiving_core_trans.bus_signals.end()) {
+      if (std::find (receiving_core_signals.begin(), receiving_core_signals.end(), bus_signal_e::Flush) != receiving_core_signals.end()) {
          num_write_backs_++;
       }
    }

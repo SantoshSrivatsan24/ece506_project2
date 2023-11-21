@@ -41,8 +41,7 @@ public:
                     num_busrdx_++;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE); 
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
             
@@ -54,8 +53,7 @@ public:
                     next_state = state_e::MODIFIED;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE); 
+                    FATAL("Encountered invalid operation " << op);
                 }
                 break;
 
@@ -67,14 +65,12 @@ public:
                     next_state = state_e::MODIFIED;
                 }
                 else {
-                    fprintf(stderr, "%s::%d: Encountered invalid operation '%c'.\n", __FILE__, __LINE__ , (char)op);
-                    exit (EXIT_FAILURE);    
+                    FATAL("Encountered invalid operation " << op);  
                 }
                 break;
 
             default:
-                fprintf(stderr, "ERROR:: Encountered unknown state %hhu for the MSI protocol.\n", state_);
-                exit (EXIT_FAILURE);
+                FATAL("Encountered unknown state for the " << state_ << " protocol.");
 
         }
         state_ = next_state;
@@ -106,8 +102,7 @@ public:
                 break;
 
             default:
-                fprintf (stderr, "ERROR:: Encountered unknown state %hhu for the MSI protocol.\n", state_);
-                exit (EXIT_FAILURE);
+                FATAL("Encountered unknown state for the " << state_ << " protocol.");
         }
         state_ = next_state;
         return bus_signals;

@@ -38,9 +38,9 @@ $(OBJ_DIR):
 	mkdir -p $@
 
 clean:
-	rm -rf $(OBJ_DIR) smp_cache
+	rm -rf $(OBJ_DIR) smp_cache *.zip
 
-PROTOCOL = "Dragon"
+PROTOCOL = 1
 TRACE_FILE = traces/canneal.04t.longTrace
 VALIDATION_FILE = val/Dragon_long.val
 
@@ -53,4 +53,5 @@ val: all
 	./smp_cache 8192 8 64 4 $(PROTOCOL) $(TRACE_FILE) | diff -iwy - $(VALIDATION_FILE)
 
 pack:
-	zip -j project2.zip *.cc *.h
+	# zip -j project2.zip *.cc *.h
+	zip -j project2.zip src/*.cc src/*.h spec/ece506_project2.pdf

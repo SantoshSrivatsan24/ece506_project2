@@ -10,7 +10,10 @@ using namespace std;
 #include "cache.h"
 #include "bus.h"
 
-#define STRINGIFY(x) #x
+#define TRACE_CONFIG(s, d) \
+   do { \
+      printf("%-25s %lu\n", s, d); \
+   } while(0)
 
 
 int main(int argc, char *argv[]) {
@@ -25,9 +28,7 @@ int main(int argc, char *argv[]) {
     ulong cache_assoc       = atoi(argv[2]);
     ulong blk_size          = atoi(argv[3]);
     ulong num_processors    = atoi(argv[4]);
-    char *protocol          = new char[20];
-    protocol                = argv[5];
-    // protocol_e protocol     = static_cast<protocol_e>(atoi(argv[5]));
+    protocol_e protocol     = static_cast<protocol_e>(atoi(argv[5]));
     char *fname             = new char[20];
     fname                   = argv[6];
 
@@ -42,12 +43,12 @@ int main(int argc, char *argv[]) {
     printf("UnityID: srsrivat\n");
     printf("ECE492 student? No\n");
 
-    printf("===== Simulator configuration =====\n");
-    printf("L1_SIZE: %lu\n", cache_size);
-    printf("L1_ASSOC: %lu\n", cache_assoc);
-    printf("L1_BLOCKSIZE: %lu\n", blk_size);
-    printf("NUMBER OF PROCESSORS: %lu\n", num_processors);
-    printf("COHERENCE PROTOCOL: %s\n", protocol); /* FIXME: */
+    printf("===== 506 SMP Simulator configuration =====\n");
+    TRACE_CONFIG("L1_SIZE:", cache_size);
+    TRACE_CONFIG("L1_ASSOC:", cache_assoc);
+    TRACE_CONFIG("L1_BLOCKSIZE:", blk_size);
+    TRACE_CONFIG("NUMBER OF PROCESSORS:", num_processors);
+    std::cout<<std::setw(25)<<std::left<<"COHERENCE PROTOCOL: "<< protocol<<'\n';
     printf("TRACE FILE: %s\n", fname);
 
     Bus *bus = new Bus();
